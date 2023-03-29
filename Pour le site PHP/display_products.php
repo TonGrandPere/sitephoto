@@ -1,37 +1,26 @@
-<html>
-  <title>Using BLOB and MySQL</title>
-  <body>
+<?php
 
-  <?php
+require_once 'vendor/autoload.php';
 
-  require_once 'config.php';
+use MicrosoftAzure\Storage\Blob\BlobRestProxy;
+use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
 
-  $sql = "SELECT * FROM products";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute();
-  ?>
+// Specify your connection string and create a blob client instance
+$connectionString = "DefaultEndpointsProtocol=https;AccountName=<your_account_name>;AccountKey=<your_account_key>";
+$blobClient = BlobRestProxy::createBlobService($connectionString);
 
-  <table border = '1' align = 'center'> <caption>Products Database</caption>
-    <tr>
-      <th>Product Id</th>
-      <th>Product Name</th>
-      <th>Price</th>
-      <th>Product Image</th>
-    </tr>
+// Specify the container name that you want to list blobs from
+$containerName = "<your_container_name>";
 
-  <?php
-  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-      echo '<tr>';
-      echo '<td>' . $row['product_id'] . '</td>';
-      echo '<td>' . $row['product_name'] . '</td>';
-      echo '<td>' . $row['price'] . '</td>';
-      echo '<td>' .
-      '<img src = "data:image/png;base64,' . base64_encode($row['product_image']) . '" width = "50px" height = "50px"/>'
-      . '</td>';
-      echo '</tr>';
-  }
-  ?>
+try {
+    // Get list of all blobs in the container
+    $blobList = $blobClient->listBlobs($containerName);
 
-  </table>
-  </body>
-</html>
+    // Loop through each blob in the list and display its name
+    foreach ($blobList->getBlobs() as $blob) {
+        echo "Blob name: " . $blob->getName() . "<br>";
+    }
+} catch (ServiceException $e) {
+    echo $e->getMessage();
+}
+?>
